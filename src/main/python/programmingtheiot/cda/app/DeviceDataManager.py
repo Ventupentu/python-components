@@ -38,22 +38,21 @@ class DeviceDataManager(IDataMessageListener):
 	def __init__(self):
 		self.configUtil = ConfigUtil()
 
-		self.enableSystemPerf   = \
-			self.configUtil.getBoolean( \
-				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_SYSTEM_PERF_KEY)
+		self.enableSystemPerf   = self.configUtil.getBoolean(
+			section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_SYSTEM_PERF_KEY)
 
-		self.enableSensing      = \
-			self.configUtil.getBoolean( \
-				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_SENSING_KEY)
+		self.enableSensing      = self.configUtil.getBoolean(
+			section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_SENSING_KEY)
 
-		# NOTE: this can also be retrieved from the configuration file
 		self.enableActuation    = True
+
+		self.enableMqttClient   = self.configUtil.getBoolean(
+			section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_MQTT_CLIENT_KEY)
 
 		self.sysPerfMgr         = None
 		self.sensorAdapterMgr   = None
 		self.actuatorAdapterMgr = None
 
-		# NOTE: The following aren't used until Part III but should be declared now
 		self.mqttClient         = None
 		self.coapClient         = None
 		self.coapServer         = None
@@ -72,17 +71,20 @@ class DeviceDataManager(IDataMessageListener):
 			self.actuatorAdapterMgr = ActuatorAdapterManager(dataMsgListener = self)
 			logging.info("Local actuation capabilities enabled")
 
-		self.handleTempChangeOnDevice = \
-			self.configUtil.getBoolean( \
-				ConfigConst.CONSTRAINED_DEVICE, ConfigConst.HANDLE_TEMP_CHANGE_ON_DEVICE_KEY)
+		if self.enableMqttClient:
+			self.mqttClient = MqttClientConnector()
+			self.mqttClient.setDataMessageListener(self)
+			logging.info("MQTT client enabled and initialized.")
 
-		self.triggerHvacTempFloor     = \
-			self.configUtil.getFloat( \
-				ConfigConst.CONSTRAINED_DEVICE, ConfigConst.TRIGGER_HVAC_TEMP_FLOOR_KEY);
+		self.handleTempChangeOnDevice = self.configUtil.getBoolean(
+			ConfigConst.CONSTRAINED_DEVICE, ConfigConst.HANDLE_TEMP_CHANGE_ON_DEVICE_KEY)
 
-		self.triggerHvacTempCeiling   = \
-			self.configUtil.getFloat( \
-				ConfigConst.CONSTRAINED_DEVICE, ConfigConst.TRIGGER_HVAC_TEMP_CEILING_KEY);
+		self.triggerHvacTempFloor = self.configUtil.getFloat(
+			ConfigConst.CONSTRAINED_DEVICE, ConfigConst.TRIGGER_HVAC_TEMP_FLOOR_KEY)
+
+		self.triggerHvacTempCeiling = self.configUtil.getFloat(
+			ConfigConst.CONSTRAINED_DEVICE, ConfigConst.TRIGGER_HVAC_TEMP_CEILING_KEY)
+
 		
 	def getLatestActuatorDataResponseFromCache(self, name: str = None) -> ActuatorData:
 		"""
@@ -184,6 +186,10 @@ class DeviceDataManager(IDataMessageListener):
 		if self.sensorAdapterMgr:
 			self.sensorAdapterMgr.startManager()
 
+		if self.mqttClient:
+			self.mqttClient.connectClient()
+			self.mqttClient.subscribeToTopic(ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE, callback = None, qos = ConfigConst.DEFAULT_QOS)
+
 		logging.info("Started DeviceDataManager.")
 		
 	def stopManager(self):
@@ -194,6 +200,10 @@ class DeviceDataManager(IDataMessageListener):
 
 		if self.sensorAdapterMgr:
 			self.sensorAdapterMgr.stopManager()
+		
+		if self.mqttClient:
+			self.mqttClient.unsubscribeFromTopic(ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE)
+			self.mqttClient.disconnectClient()
 
 		logging.info("Stopped DeviceDataManager.")
 		
