@@ -28,6 +28,7 @@ from programmingtheiot.data.DataUtil import DataUtil
 from programmingtheiot.data.ActuatorData import ActuatorData
 from programmingtheiot.data.SensorData import SensorData
 from programmingtheiot.data.SystemPerformanceData import SystemPerformanceData
+from programmingtheiot.cda.connection.CoapClientConnector import CoapClientConnector
 
 class DeviceDataManager(IDataMessageListener):
 	"""
@@ -45,6 +46,14 @@ class DeviceDataManager(IDataMessageListener):
 		self.enableSensing      = \
 			self.configUtil.getBoolean( \
 				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_SENSING_KEY)
+
+		self.enableCoapClient = self.configUtil.getBoolean(
+			section=ConfigConst.CONSTRAINED_DEVICE,
+			key=ConfigConst.ENABLE_COAP_CLIENT_KEY
+		)
+
+		if self.enableCoapClient:
+			self.coapClient = CoapClientConnector(dataMsgListener=self)
 
 		# NOTE: this can also be retrieved from the configuration file
 		self.enableActuation    = True
