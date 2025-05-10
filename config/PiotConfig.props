@@ -20,6 +20,8 @@ defaultQoS     = 0
 keepAlive      = 60
 enableAuth     = False
 enableCrypt    = False
+clientID       = MyTestClient
+
 
 #
 # CoAP client configuration information
