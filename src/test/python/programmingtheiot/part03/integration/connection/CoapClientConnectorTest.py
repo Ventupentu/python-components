@@ -123,7 +123,7 @@ class CoapClientConnectorTest(unittest.TestCase):
 			timeout=5
 		)
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testPutSensorMessageCon(self):
 		data = SensorData()
 		jsonData = DataUtil().sensorDataToJson(data=data)
@@ -135,7 +135,7 @@ class CoapClientConnectorTest(unittest.TestCase):
 			timeout=5
 		)
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testPutSensorMessageNon(self):
 		data = SensorData()
 		jsonData = DataUtil().sensorDataToJson(data=data)
