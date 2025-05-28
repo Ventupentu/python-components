@@ -239,6 +239,23 @@ class DeviceDataManager(IDataMessageListener):
 			# task implementations, and not this function
 			self.handleActuatorCommandMessage(ad)
 		
+		# --- Vibration sensor anti-damage logic ---
+		if data and data.getTypeID() == ConfigConst.VIBRATION_SENSOR_TYPE:
+			from programmingtheiot.cda.emulated.VibrationSensorEmulatorTask import VibrationSensorEmulatorTask
+			vibration_value = data.getValue()
+			# Use the same threshold as the emulator
+			if vibration_value > 0.7:
+				logging.warning(f"Vibration abnormal: {vibration_value}. Sending relay OFF command.")
+				ad = ActuatorData(typeID=ConfigConst.RELAY_ACTUATOR_TYPE)
+				ad.setCommand(ConfigConst.COMMAND_ON)
+				ad.setValue(1.0)
+				self.handleActuatorCommandMessage(ad)
+			else:
+				ad = ActuatorData(typeID=ConfigConst.RELAY_ACTUATOR_TYPE)
+				ad.setCommand(ConfigConst.COMMAND_OFF)
+				ad.setValue(0.0)
+				self.handleActuatorCommandMessage(ad)
+		
 	def _handleUpstreamTransmission(self, resourceName: ResourceNameEnum, msg: str):
 		"""
 		Call this from handleActuatorCommandResponse(), handlesensorMessage(), and handleSystemPerformanceMessage()

@@ -19,6 +19,7 @@ from programmingtheiot.data.ActuatorData import ActuatorData
 
 from programmingtheiot.cda.sim.HvacActuatorSimTask import HvacActuatorSimTask
 from programmingtheiot.cda.sim.HumidifierActuatorSimTask import HumidifierActuatorSimTask
+from programmingtheiot.cda.emulated.RelayActuatorEmulatorTask import RelayActuatorEmulatorTask
 
 class ActuatorAdapterManager(object):
 	"""
@@ -47,6 +48,7 @@ class ActuatorAdapterManager(object):
 		self.humidifierActuator = None
 		self.hvacActuator       = None
 		self.ledDisplayActuator = None
+		self.relayActuator      = None
 
 		# see PIOT-CDA-03-007 description for thoughts on the next line of code
 		self._initEnvironmentalActuationTasks()
@@ -67,6 +69,8 @@ class ActuatorAdapterManager(object):
 					responseData = self.hvacActuator.updateActuator(data)
 				elif aType == ConfigConst.LED_DISPLAY_ACTUATOR_TYPE and self.ledDisplayActuator:
 					responseData = self.ledDisplayActuator.updateActuator(data)
+				elif aType == ConfigConst.RELAY_ACTUATOR_TYPE and self.relayActuator:
+					responseData = self.relayActuator.activate(data.getCommand())
 				else:
 					logging.warning("No valid actuator type. Ignoring actuation for type: %s", data.getTypeID())
 
@@ -93,3 +97,6 @@ class ActuatorAdapterManager(object):
 
 			# create the HVAC actuator
 			self.hvacActuator = HvacActuatorSimTask()
+		else:
+			# create the relay actuator for emulated actuation
+			self.relayActuator = RelayActuatorEmulatorTask()

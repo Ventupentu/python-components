@@ -39,6 +39,12 @@ class BaseActuatorSimTask():
 	def getSimpleName(self) -> str:
 		return self.simpleName
 	
+	def getName(self) -> str:
+		return self.name
+
+	def getTypeID(self) -> int:
+		return self.typeID
+	
 	def updateActuator(self, data: ActuatorData) -> ActuatorData:
 		if data and self.typeID == data.getTypeID():
 			statusCode = ConfigConst.DEFAULT_STATUS
@@ -103,4 +109,3 @@ class BaseActuatorSimTask():
 		logging.info("Simulating %s actuator OFF: %s", self.name, msg)
 
 		return 0
-		
